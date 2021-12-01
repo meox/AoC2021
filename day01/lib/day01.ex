@@ -5,16 +5,19 @@ defmodule Day01 do
 
   def count_increment3() do
     input = load_input()
-    second = Stream.drop(input, 1)
-    third = Stream.drop(input, 2)
-    Stream.zip([input, second, third])
+    [
+      input,
+      Stream.drop(input, 1),
+      Stream.drop(input, 2)
+    ]
+    |> Stream.zip()
     |> Stream.map(fn({x, y, z}) -> x + y + z end)
     |> count_increment()
   end
 
   def count_increment(input) do
-    second = Stream.drop(input, 1)
-    Stream.zip(input, second)
+    input
+    |> Stream.zip(Stream.drop(input, 1))
     |> Stream.map(fn({x, y}) when x < y -> :inc; ({x, x}) -> :no_change;  (_) -> :dec end)
     |> Stream.filter(fn(:inc) -> true; (_) -> false end)
     |> Enum.count()
