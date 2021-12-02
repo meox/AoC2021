@@ -1,3 +1,5 @@
 # AoC2021
+https://adventofcode.com/2021
 
-- day01: Elixir
+- Day01: Elixir
+- Day02: Elixir
