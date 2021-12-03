@@ -19,12 +19,14 @@ defmodule Day02 do
     |> Enum.reduce(
       %{x: 0, depth: 0, aim: 0},
       fn
-        ({:up, v}, %{x: x, aim: aim, depth: d}) ->
+        {:up, v}, %{x: x, aim: aim, depth: d} ->
           %{x: x, aim: aim - v, depth: d}
-        ({:down, v}, %{x: x, aim: aim, depth: d}) ->
+
+        {:down, v}, %{x: x, aim: aim, depth: d} ->
           %{x: x, aim: aim + v, depth: d}
-        ({:forward, v}, %{x: x, aim: aim, depth: d}) ->
-          %{x: x + v, aim: aim, depth: d + aim*v}
+
+        {:forward, v}, %{x: x, aim: aim, depth: d} ->
+          %{x: x + v, aim: aim, depth: d + aim * v}
       end
     )
   end
@@ -34,11 +36,13 @@ defmodule Day02 do
     |> Enum.reduce(
       %{x: 0, depth: 0},
       fn
-        ({:up, v}, %{x: x, depth: d}) ->
+        {:up, v}, %{x: x, depth: d} ->
           %{x: x, depth: d - v}
-        ({:down, v}, %{x: x, depth: d}) ->
+
+        {:down, v}, %{x: x, depth: d} ->
           %{x: x, depth: d + v}
-        ({:forward, v}, %{x: x, depth: d}) ->
+
+        {:forward, v}, %{x: x, depth: d} ->
           %{x: x + v, depth: d}
       end
     )
@@ -46,17 +50,24 @@ defmodule Day02 do
 
   def load_input() do
     {:ok, content} = File.read("./data/input.txt")
+
     content
     |> String.split("\n")
-    |> Enum.filter(fn("") -> false; (_) -> true end)
-    |> Enum.map(fn(cmd) ->
+    |> Enum.filter(fn
+      "" -> false
+      _ -> true
+    end)
+    |> Enum.map(fn cmd ->
       [action, val] = String.split(cmd)
       val_num = String.to_integer(val)
+
       case {action, val_num} do
         {"down", x} ->
           {:down, x}
+
         {"up", x} ->
           {:up, x}
+
         {"forward", x} ->
           {:forward, x}
       end
