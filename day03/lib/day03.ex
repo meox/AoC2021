@@ -8,8 +8,9 @@ defmodule Day03 do
     input = load_input()
 
     gamma_digits =
-      0..(num_cols-1)
-      |> Enum.map(fn(idx) -> calc_most_common(idx, input) end)
+      0..(num_cols - 1)
+      |> Enum.map(fn idx -> calc_most_common(idx, input) end)
+
     epsilon_digits = complement(gamma_digits)
 
     to_num(gamma_digits) * to_num(epsilon_digits)
@@ -18,14 +19,15 @@ defmodule Day03 do
   defp calc_most_common(index, input) do
     {zero, one} =
       input
-      |> Enum.map(&(String.at(&1, index)))
+      |> Enum.map(&String.at(&1, index))
       |> Enum.reduce(
         {0, 0},
         fn
-          ("0", {nx, ny}) -> {nx + 1, ny};
-          ("1", {nx, ny}) -> {nx, ny + 1}
+          "0", {nx, ny} -> {nx + 1, ny}
+          "1", {nx, ny} -> {nx, ny + 1}
         end
       )
+
     max_common(zero, one)
   end
 
@@ -34,7 +36,10 @@ defmodule Day03 do
 
   defp complement(xs) when is_list(xs) do
     xs
-    |> Enum.map(fn(0) -> 1; (1) -> 0 end)
+    |> Enum.map(fn
+      0 -> 1
+      1 -> 0
+    end)
   end
 
   defp to_num(digits) do
@@ -44,6 +49,7 @@ defmodule Day03 do
   end
 
   defp to_num([], _i, acc), do: :erlang.trunc(acc)
+
   defp to_num([x | xs], i, acc) do
     n = x * :math.pow(2, i)
     to_num(xs, i + 1, acc + n)
@@ -54,6 +60,9 @@ defmodule Day03 do
 
     content
     |> String.split("\n")
-    |> Enum.filter(fn("") -> false; (_) -> true end)
+    |> Enum.filter(fn
+      "" -> false
+      _ -> true
+    end)
   end
 end
