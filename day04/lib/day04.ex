@@ -17,22 +17,26 @@ defmodule Day04 do
 
     {marked, table} =
       random
-      |> Enum.reduce(
+      |> Enum.reduce_while(
         nil,
         fn number, acc ->
           players |> Enum.each(fn player -> send(player, {:number, number}) end)
 
           receive do
             {:win, msg} ->
-              msg
+              {:cont, msg}
 
             :next ->
-              acc
+              {:cont, acc}
+
+            :stopped ->
+              {:halt, acc}
           end
         end
       )
 
     stop_players(players)
+    send(control_pid, :stop)
     unmarked_sum(table) * Enum.at(marked, length(marked) - 1)
   end
 
@@ -62,13 +66,14 @@ defmodule Day04 do
             :next ->
               {:cont, acc}
 
-            msg ->
-              IO.inspect(msg)
+            :stopped ->
+              {:halt, acc}
           end
         end
       )
 
     stop_players(players)
+    send(control_pid, :stop)
     unmarked_sum(table) * Enum.at(marked, length(marked) - 1)
   end
 
@@ -86,6 +91,10 @@ defmodule Day04 do
     |> Enum.sum()
   end
 
+  defp controller(main, 0 = _num_players, _arrived, _winner, _state) do
+    send(main, :stopped)
+  end
+
   defp controller(main, num_players, arrived, winner, state) when arrived == num_players do
     send(main, state)
     controller(main, num_players - winner, 0, 0, :next)
@@ -98,6 +107,9 @@ defmodule Day04 do
 
       :nope ->
         controller(main, num_players, arrived + 1, winner, state)
+
+      :stop ->
+        :stopped
     end
   end
 
