@@ -3,36 +3,72 @@ defmodule Day04 do
   Documentation for `Day04`.
   """
 
+  def check_winner_last() do
+    {random, tables} = load_input()
+
+    main = self()
+    control_pid = spawn(fn -> controller(main, length(tables), 0, 0, :next) end)
+
+    players =
+      tables
+      |> Enum.map(fn table ->
+        spawn(fn -> player(control_pid, table, []) end)
+      end)
+
+    {marked, table} =
+      random
+      |> Enum.reduce(
+        nil,
+        fn number, acc ->
+          players |> Enum.each(fn player -> send(player, {:number, number}) end)
+
+          receive do
+            {:win, msg} ->
+              msg
+
+            :next ->
+              acc
+          end
+        end
+      )
+
+    stop_players(players)
+    unmarked_sum(table) * Enum.at(marked, length(marked) - 1)
+  end
+
   def check_winner() do
     {random, tables} = load_input()
 
     main = self()
-    control_pid = spawn(fn -> controller(main, length(tables), 0) end)
+    control_pid = spawn(fn -> controller(main, length(tables), 0, 0, :next) end)
 
     players =
       tables
-      |> Enum.zip(0..length(tables))
-      |> Enum.map(fn {table, idx} ->
-        spawn(fn -> player(control_pid, idx, table, []) end)
+      |> Enum.map(fn table ->
+        spawn(fn -> player(control_pid, table, []) end)
       end)
 
-    {_idx, marked, table} =
+    {marked, table} =
       random
       |> Enum.reduce_while(
         [],
-        fn number, _acc ->
+        fn number, acc ->
           players |> Enum.each(fn player -> send(player, {:number, number}) end)
 
           receive do
             {:win, msg} ->
               {:halt, msg}
 
-            _ ->
-              {:cont, []}
+            :next ->
+              {:cont, acc}
+
+            msg ->
+              IO.inspect(msg)
           end
         end
       )
 
+    stop_players(players)
     unmarked_sum(table) * Enum.at(marked, length(marked) - 1)
   end
 
@@ -50,22 +86,22 @@ defmodule Day04 do
     |> Enum.sum()
   end
 
-  defp controller(main, num_players, arrived) when arrived == num_players do
-    send(main, :next)
-    controller(main, num_players, 0)
+  defp controller(main, num_players, arrived, winner, state) when arrived == num_players do
+    send(main, state)
+    controller(main, num_players - winner, 0, 0, :next)
   end
 
-  defp controller(main, num_players, arrived) do
+  defp controller(main, num_players, arrived, winner, state) do
     receive do
       {:win, _} = msg ->
-        send(main, msg)
+        controller(main, num_players, arrived + 1, winner + 1, msg)
 
       :nope ->
-        controller(main, num_players, arrived + 1)
+        controller(main, num_players, arrived + 1, winner, state)
     end
   end
 
-  def player(controller, idx, table, marked) do
+  def player(controller, table, marked) do
     receive do
       {:number, number} ->
         {c_marked, new_table} = mark_table(number, table)
@@ -73,16 +109,15 @@ defmodule Day04 do
 
         case check_win(new_table) do
           true ->
-            send(controller, {:win, {idx, new_marked, new_table}})
+            send(controller, {:win, {new_marked, new_table}})
 
           false ->
             send(controller, :nope)
-            player(controller, idx, new_table, new_marked)
+            player(controller, new_table, new_marked)
         end
 
       :stop ->
-        send(controller, :loose)
-        :loose
+        :stopped
     end
   end
 
@@ -134,7 +169,12 @@ defmodule Day04 do
     {new_marked, Enum.reverse(new_table)}
   end
 
-  def load_input() do
+  defp stop_players(players) do
+    players
+    |> Enum.each(fn p -> send(p, :stop) end)
+  end
+
+  defp load_input() do
     {:ok, fd} = File.open("./data/input.txt", [:read])
     random = IO.read(fd, :line)
     # separator
