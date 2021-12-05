@@ -3,10 +3,21 @@ defmodule Day05 do
   Documentation for `Day05`.
   """
 
+  def points_overlap_all() do
+    load_input()
+    |> fill_board()
+    |> count_score()
+  end
+
   def points_overlap() do
     load_input()
     |> only_horizontal_vertical()
     |> fill_board()
+    |> count_score()
+  end
+
+  defp count_score(board) do
+    board
     |> Enum.reduce(0, fn
       {_k, v}, acc when v >= 2 ->
         acc + 1
@@ -16,7 +27,7 @@ defmodule Day05 do
     end)
   end
 
-  def fill_board(lines) do
+  defp fill_board(lines) do
     lines
     |> Enum.reduce(
       %{},
@@ -42,7 +53,11 @@ defmodule Day05 do
 
   def points({{x1, y}, {x2, y}}), do: points({{x2, y}, {x1, y}})
 
-  def only_horizontal_vertical(lines) do
+  def points({{x1, y1}, {x2, y2}}) do
+    Enum.zip(x1..x2, y1..y2)
+  end
+
+  defp only_horizontal_vertical(lines) do
     lines
     |> Enum.filter(fn
       {{x, _}, {x, _}} ->
@@ -56,7 +71,7 @@ defmodule Day05 do
     end)
   end
 
-  def load_input() do
+  defp load_input() do
     {:ok, content} = File.read("./data/input.txt")
 
     content
