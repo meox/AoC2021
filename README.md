@@ -6,4 +6,5 @@ https://adventofcode.com/2021
 - Day03: Elixir
 - Day04: Elixir
 - Day05: Elixir
+- Day06: Elixir
 
