@@ -20,7 +20,7 @@ defmodule Day06 do
     |> Enum.reduce(
       %{},
       fn {k, v}, acc ->
-        Map.put(acc, k - 1, v);
+        Map.put(acc, k - 1, v)
       end
     )
     |> Map.update(8, num_expired, fn v -> v + num_expired end)
@@ -30,10 +30,14 @@ defmodule Day06 do
 
   def load_input() do
     {:ok, content} = File.read("./data/input.txt")
+
     content
     |> String.trim()
     |> String.split(",")
-    |> Enum.filter(fn "" -> false; _ -> true end)
+    |> Enum.filter(fn
+      "" -> false
+      _ -> true
+    end)
     |> Enum.map(&String.to_integer/1)
   end
 end
