@@ -15,11 +15,14 @@ defmodule Day08 do
             case discover_by_len(s) do
               {:ok, val} ->
                 {val, c_acc + 1}
+
               {:nope, val} ->
                 {val, c_acc}
             end
-        end)
-    end)
+          end
+        )
+      end
+    )
     |> elem(1)
   end
 
@@ -44,59 +47,70 @@ defmodule Day08 do
       {s, val}
     end)
     |> Enum.map(&calc_possibilities/1)
-    |> Enum.reduce(
-      %{},
-      fn {s, ps}, acc ->
-        Map.put(acc, s, ps)
-      end
-    )
+    |> Enum.reduce(%{}, fn {s, ps}, acc -> Map.put(acc, s, ps) end)
     |> full_decrypt()
   end
 
   def full_decrypt(resolve_map) do
-    step = decrypt_step(resolve_map)
-    continue_decrypt(step, is_decrypted(step))
+    relevant_keys = get_key_elements(resolve_map)
+    full_decrypt(relevant_keys, resolve_map)
   end
 
-  def continue_decrypt(resolve_map, false), do: full_decrypt(resolve_map)
-  def continue_decrypt(resolve_map, true), do: resolve_map
+  def full_decrypt(relevant_keys, resolve_map) do
+    step = decrypt_step(relevant_keys, resolve_map)
+    continue_decrypt(relevant_keys, step, is_decrypted(step))
+  end
+
+  def continue_decrypt(relevant_keys, resolve_map, false),
+    do: full_decrypt(relevant_keys, resolve_map)
+
+  def continue_decrypt(_relevant_keys, resolve_map, true), do: resolve_map
 
   def is_decrypted(resolve_map) do
     resolve_map
-    |> Enum.all?(fn {_k, v} when is_integer(v) -> true; _ -> false end)
+    |> Enum.all?(fn
+      {_k, v} when is_integer(v) -> true
+      _ -> false
+    end)
   end
 
-  def decrypt_step(resolve_map) do
-    %{1 => one, 4 => four, 7 => seven, 8 => eight} = get_key_elements(resolve_map)
+  def decrypt_step(%{1 => one, 4 => four, 7 => seven, 8 => eight}, resolve_map) do
     resolve_map
     |> Enum.reduce(
       resolve_map,
       fn
         {_k, v}, acc when is_integer(v) ->
           acc
+
         {k, vs}, acc when is_list(vs) ->
           left =
             vs
             |> Enum.filter(fn p -> not resolved(p, acc) end)
-            |> Enum.filter(
-              fn p ->
-                # calculate the segments that are on when ps is on
-                case includes(p) do
-                  [] ->
-                    # cannot include 1,4,7
-                    !is_in(one, k) and !is_in(four, k) and !is_in(seven, k)
-                  inc ->
-                    inc
-                    |> resolve_includes(resolve_map)
-                    |> Enum.all?(fn x -> is_in(x, k) end)
-                end
+            |> Enum.filter(fn p ->
+              # calculate the segments that are on when ps is on
+              case includes(p) do
+                [] ->
+                  # cannot include 1,4,7
+                  !is_in(one, k) and !is_in(four, k) and !is_in(seven, k)
+
+                inc ->
+                  inc
+                  |> resolve_includes(resolve_map)
+                  |> Enum.all?(fn x -> is_in(x, k) end)
+              end
             end)
-            |> Enum.filter(fn 2 -> can_be_two(k, four, eight); _ -> true end)
-            |> Enum.filter(fn 5 -> can_be_five(k, one, acc); _ -> true end)
+            |> Enum.filter(fn
+              2 -> can_be_two(k, four, eight)
+              _ -> true
+            end)
+            |> Enum.filter(fn
+              5 -> can_be_five(k, one, acc)
+              _ -> true
+            end)
             |> zip()
 
           Map.put(acc, k, left)
-     end
+      end
     )
   end
 
@@ -110,7 +124,9 @@ defmodule Day08 do
       [{nine, 9}] ->
         x = (candidate ++ one) |> Enum.uniq() |> Enum.sort()
         x == Enum.sort(nine)
-      _ -> true
+
+      _ ->
+        true
     end
   end
 
@@ -140,6 +156,7 @@ defmodule Day08 do
       fn
         {k, v}, acc when v == 1 or v == 4 or v == 7 or v == 8 ->
           Map.put(acc, v, k)
+
         _, acc ->
           acc
       end
@@ -147,7 +164,7 @@ defmodule Day08 do
   end
 
   def is_in(as, bs) do
-    Enum.all?(as, & :lists.member(&1, bs))
+    Enum.all?(as, &:lists.member(&1, bs))
   end
 
   def calc_possibilities({s, val}) when is_number(val), do: {s, val}
@@ -191,12 +208,11 @@ defmodule Day08 do
     |> Enum.map(fn line ->
       line
       |> String.split(" | ")
-      |> Enum.map(
-        fn t ->
-          t
-          |> String.split(" ")
-          |> Enum.map(fn s -> s |> String.to_charlist() |> Enum.sort() end)
-        end)
+      |> Enum.map(fn t ->
+        t
+        |> String.split(" ")
+        |> Enum.map(fn s -> s |> String.to_charlist() |> Enum.sort() end)
+      end)
     end)
   end
 end
