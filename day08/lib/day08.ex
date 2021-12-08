@@ -90,7 +90,7 @@ defmodule Day08 do
               # calculate the segments that are on when ps is on
               case includes(p) do
                 [] ->
-                  # cannot include 1,4,7
+                  # cannot include 1, 4, 7
                   !is_in(one, k) and !is_in(four, k) and !is_in(seven, k)
 
                 inc ->
@@ -107,7 +107,7 @@ defmodule Day08 do
               5 -> can_be_five(k, one, acc)
               _ -> true
             end)
-            |> zip()
+            |> maybe_unwrap()
 
           Map.put(acc, k, left)
       end
@@ -116,22 +116,22 @@ defmodule Day08 do
 
   def can_be_two(candidate, four, eight) do
     x = (candidate ++ four) |> Enum.uniq() |> Enum.sort()
-    x == Enum.sort(eight)
+    x == eight
   end
 
   def can_be_five(candidate, one, resolve_map) do
     case extract(9, resolve_map) do
       [{nine, 9}] ->
         x = (candidate ++ one) |> Enum.uniq() |> Enum.sort()
-        x == Enum.sort(nine)
+        x == nine
 
       _ ->
         true
     end
   end
 
-  def zip([x]), do: x
-  def zip(xs), do: xs
+  def maybe_unwrap([x]), do: x
+  def maybe_unwrap(xs), do: xs
 
   def resolved(p, resolve_map) do
     resolve_map
