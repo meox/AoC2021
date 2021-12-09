@@ -47,9 +47,11 @@ defmodule Day09 do
       [],
       fn {p, h}, acc ->
         as = adjacents_high(p, table)
+
         case is_lowpoint(h, as) do
           true ->
             [p | acc]
+
           false ->
             acc
         end
@@ -63,35 +65,41 @@ defmodule Day09 do
 
   def adjacents_high({x0, y0}, table) do
     [
-      {x0-1, y0}, {x0+1, y0},
-      {x0, y0-1}, {x0, y0+1}
+      {x0 - 1, y0},
+      {x0 + 1, y0},
+      {x0, y0 - 1},
+      {x0, y0 + 1}
     ]
     |> Enum.map(fn {x, y} -> Map.get(table, {x, y}) end)
-    |> Enum.filter(fn :nil -> false; _ -> true end)
+    |> Enum.filter(fn
+      nil -> false
+      _ -> true
+    end)
   end
 
   def adjacents({x0, y0}, table) do
     [
-      {x0-1, y0}, {x0+1, y0},
-      {x0, y0-1}, {x0, y0+1}
+      {x0 - 1, y0},
+      {x0 + 1, y0},
+      {x0, y0 - 1},
+      {x0, y0 + 1}
     ]
-    |> Enum.filter(fn {x, y} -> Map.get(table, {x, y}) != :nil end)
+    |> Enum.filter(fn {x, y} -> Map.get(table, {x, y}) != nil end)
   end
 
   def load_sample(), do: load_input("./data/sample.txt")
   def load_input(), do: load_input("./data/input.txt")
+
   def load_input(filename) do
     {:ok, content} = File.read(filename)
 
     content
     |> String.split("\n", trim: true)
-    |> Enum.map(
-      fn line ->
-        line
-        |> String.split("", trim: true)
-        |> Enum.map(&String.to_integer/1)
-      end
-    )
+    |> Enum.map(fn line ->
+      line
+      |> String.split("", trim: true)
+      |> Enum.map(&String.to_integer/1)
+    end)
     |> Enum.reduce(
       {0, %{}},
       fn rows, {y, table} ->
@@ -103,6 +111,7 @@ defmodule Day09 do
               {x + 1, Map.put(table, {y, x}, h)}
             end
           )
+
         {y + 1, new_table}
       end
     )
