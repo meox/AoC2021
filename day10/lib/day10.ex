@@ -97,17 +97,8 @@ defmodule Day10 do
         ">", ["<" | rest] ->
           {:cont, rest}
 
-        ch, ["(" | _] ->
-          {:halt, {:expected, ")", ch}}
-
-        ch, ["[" | _] ->
-          {:halt, {:expected, "]", ch}}
-
-        ch, ["{" | _] ->
-          {:halt, {:expected, "}", ch}}
-
-        ch, ["<" | _] ->
-          {:halt, {:expected, ">", ch}}
+        found, [stacked | _] ->
+          {:halt, {:expected, closing(stacked), found}}
       end
     )
   end
