@@ -12,6 +12,7 @@ defmodule Day10 do
           line
           |> parse()
           |> score_syntax_error()
+
         score + acc
       end
     )
@@ -21,26 +22,24 @@ defmodule Day10 do
     scores =
       input
       |> Enum.map(&parse/1)
-      |> Enum.filter(
-        fn
-          [] ->
-            false
-          {:expected, _, _} ->
-            false
-          _ ->
-            true
-        end
-      )
-      |> Enum.map(
-        fn incomplete ->
-          incomplete
-          |> Enum.map(&closing/1)
-          |> auto_complete_score()
-        end
-      )
+      |> Enum.filter(fn
+        [] ->
+          false
+
+        {:expected, _, _} ->
+          false
+
+        _ ->
+          true
+      end)
+      |> Enum.map(fn incomplete ->
+        incomplete
+        |> Enum.map(&closing/1)
+        |> auto_complete_score()
+      end)
       |> Enum.sort()
 
-    Enum.at(scores, trunc(length(scores)/2))
+    Enum.at(scores, trunc(length(scores) / 2))
   end
 
   def auto_complete_score(ps) do
@@ -49,13 +48,16 @@ defmodule Day10 do
       0,
       fn
         ")", acc ->
-          acc*5 + 1
+          acc * 5 + 1
+
         "]", acc ->
-          acc*5 + 2
+          acc * 5 + 2
+
         "}", acc ->
-          acc*5 + 3
+          acc * 5 + 3
+
         ">", acc ->
-          acc*5 + 4
+          acc * 5 + 4
       end
     )
   end
@@ -77,24 +79,33 @@ defmodule Day10 do
     |> Enum.reduce_while(
       [],
       fn
-        ch, stack when ch in ["(", "[", "{", "<"]->
+        ch, stack when ch in ["(", "[", "{", "<"] ->
           {:cont, [ch | stack]}
+
         _, [] ->
           {:halt, {:error, :not_completed}}
+
         ")", ["(" | rest] ->
           {:cont, rest}
+
         "]", ["[" | rest] ->
           {:cont, rest}
+
         "}", ["{" | rest] ->
-            {:cont, rest}
+          {:cont, rest}
+
         ">", ["<" | rest] ->
           {:cont, rest}
+
         ch, ["(" | _] ->
           {:halt, {:expected, ")", ch}}
+
         ch, ["[" | _] ->
           {:halt, {:expected, "]", ch}}
+
         ch, ["{" | _] ->
           {:halt, {:expected, "}", ch}}
+
         ch, ["<" | _] ->
           {:halt, {:expected, ">", ch}}
       end
