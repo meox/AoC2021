@@ -7,7 +7,7 @@ defmodule Day12 do
     visit('start', 'end', input(), &valid_path?/1)
     |> Enum.filter(fn path ->
       path
-      |> Enum.filter(&(String.downcase(&1) == &1))
+      |> Enum.filter(&is_lower/1)
       |> Enum.count()
     end)
     |> Enum.count()
@@ -45,7 +45,7 @@ defmodule Day12 do
 
   def valid_path?(path) do
     path
-    |> Enum.filter(& String.downcase(&1) == &1)
+    |> Enum.filter(&is_lower/1)
     |> Enum.frequencies()
     |> Enum.all?(fn {_, v} -> v == 1 end)
   end
@@ -84,8 +84,7 @@ defmodule Day12 do
   def nears(graph, node), do: graph[node]
 
   def is_lower(s) do
-    s
-    |> Enum.all?(fn c when c in ?a..?z -> true; _ -> false end)
+    Enum.all?(s, fn c when c in ?a..?z -> true; _ -> false end)
   end
 
   def sample(), do: load_input("./data/sample.txt")
