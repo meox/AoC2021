@@ -58,33 +58,42 @@ defmodule Day12 do
         fn
           'start', {lowers, s, e} ->
             {lowers, s + 1, e}
+
           'end', {lowers, s, e} ->
             {lowers, s, e + 1}
+
           v, {lowers, s, e} = acc ->
             case is_lower(v) do
               true ->
                 {[v | lowers], s, e}
+
               false ->
                 acc
             end
         end
-    )
+      )
 
-    (
-      start_c == 1 and end_c <= 1 and (
-      freq =
-        lowers
-        |> Enum.frequencies()
-        |> Enum.filter(fn {_, v} when v == 1 -> false; _ -> true end)
+    start_c == 1 and end_c <= 1 and
+      (
+        freq =
+          lowers
+          |> Enum.frequencies()
+          |> Enum.filter(fn
+            {_, v} when v == 1 -> false
+            _ -> true
+          end)
 
-      (match?([], freq) or  match?([{_, 2}], freq)))
-    )
+        match?([], freq) or match?([{_, 2}], freq)
+      )
   end
 
   def nears(graph, node), do: graph[node]
 
   def is_lower(s) do
-    Enum.all?(s, fn c when c in ?a..?z -> true; _ -> false end)
+    Enum.all?(s, fn
+      c when c in ?a..?z -> true
+      _ -> false
+    end)
   end
 
   def sample(), do: load_input("./data/sample.txt")
