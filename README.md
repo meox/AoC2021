@@ -12,4 +12,5 @@ https://adventofcode.com/2021
 - Day09: Elixir
 - Day10: Elixir
 - Day11: Elixir
-
+- Day12: Elixir
+- Day13: Elixir
