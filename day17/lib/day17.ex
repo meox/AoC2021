@@ -51,10 +51,9 @@ defmodule Day17 do
         |> Enum.reduce(
           acc,
           fn vy, acc ->
-            ps = probe(vx, vy, target) |> Enum.to_list()
-            [{x, y} | _] = Enum.reverse(ps)
+            {x, y} = probe(vx, vy, target) |> Enum.reduce(fn x, _acc -> x end)
 
-            case reached_target?(x, y, target) do
+            case reached_target?(x, y, target) and !Enum.member?(acc, {vx, vy}) do
               true ->
                 [{vx, vy} | acc]
 
@@ -65,7 +64,7 @@ defmodule Day17 do
         )
       end
     )
-    |> Enum.uniq()
+    |> Enum.count()
   end
 
   def probe(vx, vy, target) do
