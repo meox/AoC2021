@@ -10,7 +10,7 @@ defmodule Day17 do
     max_vx = max_x
     max_vy = -min_y
 
-    0..max_vx
+    1..max_vx
     |> Enum.reduce(
       [],
       fn vx, acc ->
@@ -34,6 +34,38 @@ defmodule Day17 do
       end
     )
     |> Enum.max()
+  end
+
+  def part2() do
+    target = input()
+    {[_, max_x], [min_y, _]} = target
+
+    max_vx = max_x
+    max_vy = -min_y
+
+    1..max_vx
+    |> Enum.reduce(
+      [],
+      fn vx, acc ->
+        min_y..max_vy
+        |> Enum.reduce(
+          acc,
+          fn vy, acc ->
+            ps = probe(vx, vy, target) |> Enum.to_list()
+            [{x, y} | _] = Enum.reverse(ps)
+
+            case reached_target?(x, y, target) do
+              true ->
+                [{vx, vy} | acc]
+
+              false ->
+                acc
+            end
+          end
+        )
+      end
+    )
+    |> Enum.uniq()
   end
 
   def probe(vx, vy, target) do
