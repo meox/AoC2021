@@ -17,5 +17,13 @@ https://adventofcode.com/2021
 - Day14: Elixir (wip)
 - Day15: Elixir (wip)
 - Day16: Elixir
-- Day17: Elixir (wip)
+- Day17: Elixir
+- Day18: Elixir (todo)
+- Day19: Elixir (todo)
+- Day20: Elixir (todo)
+- Day21: Elixir (todo)
+- Day22: Elixir (todo)
+- Day23: Elixir (todo)
+- Day24: Elixir (todo)
+- Day25: Elixir (todo)
 
