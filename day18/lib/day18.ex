@@ -52,7 +52,10 @@ defmodule Day18 do
   def input(), do: load_input("./data/input.txt")
 
   def load_input(filename) do
-    {:ok, content} = File.read!(filename)
+    {:ok, content} = File.read(filename)
 
+    content
+    |> parse()
+    |> SnailG.make()
   end
 end
