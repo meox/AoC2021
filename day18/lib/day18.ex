@@ -3,34 +3,99 @@ defmodule Day18 do
   Documentation for `Day18`.
   """
 
-  def add(s1, s2) do
-    [s1, s2]
-    |> reduce()
+  def part1() do
+    input()
+    |> add()
+    |> SnailG.magnitude()
+  end
+
+  def add(xs) do
+    xs
+    |> Enum.reduce(
+      fn x, acc ->
+        SnailG.add(acc, x)
+        |> reduce()
+      end
+    )
   end
 
   def reduce(snail) do
+    snail
+    |> explode()
+    |> explode_continue()
+  end
 
+  def debug(snail) do
+    IO.inspect(SnailG.to_list(snail), charlists: :as_lists)
+    snail
+  end
+
+  def explode_continue({:ok, snail}) do
+    reduce(snail)
+  end
+  def explode_continue(r) do
+    split_continue(r)
+  end
+
+  def split_continue({:ok, snail}) do
+    {_, new_snail} = split(snail)
+    reduce(new_snail)
+  end
+
+  def split_continue({:nop, snail}) do
+    case split(snail) do
+      {:ok, snail} ->
+        reduce(snail)
+      {:nop, snail} ->
+        snail
+    end
   end
 
   def explode(g) do
     case SnailG.left_most_explode(g) do
       nil ->
-        g
+        {:nop, g}
       %SnailG{id: id, left: left_orig, right: right_orig} = node ->
         nl = SnailG.next_left(g, node)
         nr = SnailG.next_right(g, node)
 
-        g
-        |> Map.delete(id)
-        |> Map.put(id, %SnailG{node | val: 0, left: nil, right: nil})
-        |> update_node(nl, new_val(nl, g[left_orig]))
-        |> update_node(nr, new_val(nr, g[right_orig]))
-        |> Map.delete(left_orig)
-        |> Map.delete(right_orig)
+        new_g =
+          g
+          |> Map.delete(id)
+          |> Map.put(id, %SnailG{node | val: 0, left: nil, right: nil})
+          |> update_node(nl, new_val(nl, g[left_orig]))
+          |> update_node(nr, new_val(nr, g[right_orig]))
+          |> Map.delete(left_orig)
+          |> Map.delete(right_orig)
+        {:ok, new_g}
+    end
+  end
+
+  def split(g) do
+    case SnailG.left_most_split(g) do
+      nil ->
+        {:nop, g}
+      %SnailG{id: id, val: v, level: level} = node ->
+        l = :erlang.floor(v / 2)
+        r = :erlang.ceil(v / 2)
+
+        left_id = make_ref()
+        right_id = make_ref()
+
+        left = SnailG.make_val(id, left_id, l, level + 1)
+        right = SnailG.make_val(id, right_id, r, level + 1)
+
+        new_g =
+          g
+          |> Map.put(id, %SnailG{node | left: left_id, right: right_id, val: nil})
+          |> Map.put(left_id, left)
+          |> Map.put(right_id, right)
+        {:ok, new_g}
     end
   end
 
   def new_val(nil, %SnailG{val: v}), do: v
+  def new_val(%SnailG{val: v}, nil), do: v
   def new_val(%SnailG{val: v1}, %SnailG{val: v2}), do: v1 + v2
 
   def update_node(g, nil, _), do: g
@@ -43,11 +108,7 @@ defmodule Day18 do
     res
   end
 
-  def sample() do
-    "[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]"
-    |> parse()
-    |> SnailG.make()
-  end
+  def sample(), do: load_input("./data/sample.txt")
 
   def input(), do: load_input("./data/input.txt")
 
@@ -55,7 +116,7 @@ defmodule Day18 do
     {:ok, content} = File.read(filename)
 
     content
-    |> parse()
-    |> SnailG.make()
+    |> String.split("\n", trim: true)
+    |> Enum.map(& SnailG.make(parse(&1)))
   end
 end
