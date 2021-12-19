@@ -9,6 +9,21 @@ defmodule Day18 do
     |> SnailG.magnitude()
   end
 
+  def part2() do
+    data = input()
+    cs = for x <- data, y <- data, do: {x, y}
+    cs
+    |> Enum.filter(fn {x, y} -> SnailG.to_list(x) != SnailG.to_list(y) end)
+    |> Enum.reduce(
+      0,
+      fn {x, y}, acc ->
+        m1 = SnailG.magnitude(add([x, y]))
+        m2 = SnailG.magnitude(add([y, x]))
+        Enum.max([acc, m1, m2])
+      end
+    )
+  end
+
   def add(xs) do
     xs
     |> Enum.reduce(
