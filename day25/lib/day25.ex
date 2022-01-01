@@ -24,6 +24,10 @@ defmodule Day25 do
   def step(%Grid{} = grid) do
     # move left cucumbers
     cleft = select(grid, :left)
+
+    :a = :b
+
+
     tmp_grid = move_cucumbers(cleft, grid)
 
     csouth = select(tmp_grid, :south)
