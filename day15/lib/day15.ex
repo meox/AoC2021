@@ -4,71 +4,114 @@ defmodule Day15 do
   """
 
   def part1() do
-    input = sample()
-    {{max_r, _}, _} = Enum.max_by(input, fn {{r, _c}, _} -> r end)
-    {{_, max_c}, _} = Enum.max_by(input, fn {{_r, c}, _} -> c end)
+    graph = input()
 
-    max_risk = 9 * (max_r + max_c)
-
-    walk(%{}, {0, 0}, {max_r, max_c}, input, [], max_risk)
+    source = {0, 0}
+    target = {99, 99}
+    {dist, prev} = dijkstra(graph, source, target)
+    {dist[target], path(source, target, prev)}
   end
 
-  def walk(memo, dest, dest, _graph, _path, _max_risk) do
-    {memo, 0}
+  def dijkstra(graph, source, target) do
+    {dist, prev, q} =
+      graph
+      |> Enum.reduce(
+        {%{}, %{}, MapSet.new()},
+        fn {v, _risk}, {dist, prev, q} ->
+          {Map.put(dist, v, :inf), Map.put(prev, v, :undef), MapSet.put(q, v)}
+        end
+      )
+
+    dist = Map.put(dist, source, 0)
+    dijkstra(q, dist, prev, target, graph)
   end
 
-  def walk(memo, pos, dest, graph, path, max_risk) do
-    case Map.get(memo, pos) do
-      nil ->
-        {memo, risk_children} = walk_slow(memo, pos, dest, graph, path, max_risk)
-        risk_level = sum(graph[pos], risk_children)
-        new_memo = Map.put(memo, pos, risk_level)
-        {new_memo, risk_level}
-      risk_memo ->
-        {memo, risk_memo}
+  def dijkstra(q, dist, prev, target, graph) do
+    case MapSet.size(q) do
+      0 ->
+        {dist, prev}
+      _ ->
+        do_dijkstra(q, dist, prev, target, graph)
     end
   end
 
-  def walk_slow(memo, pos, dest, graph, path, max_risk) do
-    graph
-    |> sibilings(pos)
-    |> not_visited(path)
-    |> Enum.reduce(
-      {memo, :undef},
-      fn p, {memo, min_risk} ->
-        {memo, sub_risk} = walk(memo, p, dest, graph, [p | path], max_risk)
-        risk_sib = graph[p]
-        new_risk = sum(sub_risk, risk_sib)
+  def do_dijkstra(q, dist, prev, target, graph) do
+    u = select_min_vertex(q, dist)
+    new_q = MapSet.delete(q, u)
 
-        case min_risk do
-          :undef ->
-            {memo, new_risk}
-          min_risk ->
-            {memo, min(min_risk, new_risk)}
+    do_dijkstra_from(u, target, new_q, dist, prev, graph)
+  end
+
+  def do_dijkstra_from(target, target, _q, dist, prev, _graph) do
+    {dist, prev}
+  end
+
+  def do_dijkstra_from(u, target, q, dist, prev, graph) do
+    {new_dist, new_prev} =
+      neighbors(graph, u, q)
+      |> Enum.reduce(
+        {dist, prev},
+        fn v, {dist, prev} ->
+          alt = sum(dist[u], distance(graph, v))
+          if alt < dist[v] do
+            {Map.put(dist, v, alt), Map.put(prev, v, u)}
+          else
+            {dist, prev}
+          end
         end
-      end
-    )
+      )
+    do_dijkstra(q, new_dist, new_prev, target, graph)
   end
 
-  def sum(:undef, x), do: x
-  def sum(x, :undef), do: x
+  def path(source, target, prev) do
+    path(source, target, prev, [])
+  end
+
+  def path(source, source, _prev, acc), do: [source | acc]
+  def path(source, u, prev, acc) do
+    add_to_path(prev[u], u, prev, source, acc)
+  end
+
+  def add_to_path(nil, _u, _prev, _source, acc), do: acc
+  def add_to_path(:undef, _u, _prev, _source, acc), do: acc
+  def add_to_path(prev_u, u, prev, source, acc) do
+    path(source, prev_u, prev, [u | acc])
+  end
+
+  def distance(graph, v) do
+    graph[v]
+  end
+
+  def sum(:inf, _x), do: :inf
+  def sum(_x, :inf), do: :inf
   def sum(x, y), do: x + y
-  def not_visited(points, visited) do
-    points
-    |> Enum.map(fn p -> {p, Enum.member?(visited, p)} end)
-    |> Enum.filter(fn {_, false} -> true; _ -> false end)
-    |> Enum.map(& elem(&1, 0))
+
+  def select_min_vertex(q, dist) do
+    q
+    |> Enum.reduce(
+      fn a, b ->
+        case {dist[a], dist[b]} do
+          {:inf, _} ->
+            b
+          {_, :inf} ->
+            a
+          {x, y} when x < y ->
+            a
+          _ ->
+            b
+        end
+    end)
   end
 
-  def sibilings(graph, {r, c}) do
+  def neighbors(graph, {r, c}, q) do
     [
       {r, c - 1}, {r, c + 1},
       {r - 1, c}, {r + 1, c}
     ]
     |> Enum.map(& {&1, Map.get(graph, &1)})
     |> Enum.filter(fn {_, nil} -> false; _ -> true end)
-    |> Enum.sort(fn {_, ra}, {_, rb} -> ra < rb end)
     |> Enum.map(& elem(&1, 0))
+    |> Enum.filter(& MapSet.member?(q, &1))
   end
 
   def input(), do: load_input("./data/input.txt")
