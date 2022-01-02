@@ -12,18 +12,42 @@ defmodule Day15 do
     {dist[target], path(source, target, prev)}
   end
 
+  def part2() do
+    graph = magnify(input(), 100)
+
+    source = {0, 0}
+    target = {499, 499}
+    {dist, prev} = dijkstra(graph, source, target)
+    {dist[target], path(source, target, prev)}
+  end
+
+  def magnify(graph, real) do
+    final = real * 5
+    for r <- 0..(final - 1), c <- 0..(final - 1), into: %{} do
+      {a, dr} = {rem(r, real), div(r, real)}
+      {b, dc} = {rem(c, real), div(c, real)}
+
+      risk = next(graph[{a, b}], dr + dc)
+      {{r, c}, risk}
+    end
+  end
+
+  def next(v, 0), do: v
+  def next(9, n) when n > 0, do: next(1, n - 1)
+  def next(v, n), do: next(v + 1, n - 1)
+
   def dijkstra(graph, source, target) do
-    {dist, prev, q} =
+    q =
       graph
       |> Enum.reduce(
-        {%{}, %{}, MapSet.new()},
-        fn {v, _risk}, {dist, prev, q} ->
-          {Map.put(dist, v, :inf), Map.put(prev, v, :undef), MapSet.put(q, v)}
+        MapSet.new(),
+        fn {v, _risk}, q ->
+          MapSet.put(q, v)
         end
       )
 
-    dist = Map.put(dist, source, 0)
-    dijkstra(q, dist, prev, target, graph)
+    dist = Map.put(%{}, source, 0)
+    dijkstra(q, dist, %{}, target, graph)
   end
 
   def dijkstra(q, dist, prev, target, graph) do
@@ -48,12 +72,13 @@ defmodule Day15 do
 
   def do_dijkstra_from(u, target, q, dist, prev, graph) do
     {new_dist, new_prev} =
-      neighbors(graph, u, q)
+      neighbors(u, q)
       |> Enum.reduce(
         {dist, prev},
         fn v, {dist, prev} ->
-          alt = sum(dist[u], distance(graph, v))
-          if alt < dist[v] do
+          distance = graph[v]
+          alt = sum(dist[u], distance)
+          if alt != nil && alt < dist[v] do
             {Map.put(dist, v, alt), Map.put(prev, v, u)}
           else
             {dist, prev}
@@ -73,44 +98,23 @@ defmodule Day15 do
   end
 
   def add_to_path(nil, _u, _prev, _source, acc), do: acc
-  def add_to_path(:undef, _u, _prev, _source, acc), do: acc
   def add_to_path(prev_u, u, prev, source, acc) do
     path(source, prev_u, prev, [u | acc])
   end
 
-  def distance(graph, v) do
-    graph[v]
-  end
-
-  def sum(:inf, _x), do: :inf
-  def sum(_x, :inf), do: :inf
+  def sum(nil, _x), do: nil
+  def sum(_x, nil), do: nil
   def sum(x, y), do: x + y
 
   def select_min_vertex(q, dist) do
-    q
-    |> Enum.reduce(
-      fn a, b ->
-        case {dist[a], dist[b]} do
-          {:inf, _} ->
-            b
-          {_, :inf} ->
-            a
-          {x, y} when x < y ->
-            a
-          _ ->
-            b
-        end
-    end)
+    Enum.min_by(q, & dist[&1])
   end
 
-  def neighbors(graph, {r, c}, q) do
+  def neighbors({r, c}, q) do
     [
-      {r, c - 1}, {r, c + 1},
-      {r - 1, c}, {r + 1, c}
+      {r, c + 1}, {r + 1, c},
+      {r - 1, c}, {r, c - 1}
     ]
-    |> Enum.map(& {&1, Map.get(graph, &1)})
-    |> Enum.filter(fn {_, nil} -> false; _ -> true end)
-    |> Enum.map(& elem(&1, 0))
     |> Enum.filter(& MapSet.member?(q, &1))
   end
 
