@@ -15,15 +15,15 @@ https://adventofcode.com/2021
 - Day12: Elixir
 - Day13: Elixir
 - Day14: Elixir
-- Day15: Elixir (wip)
+- Day15: Elixir (part2 need to be optimized)
 - Day16: Elixir
 - Day17: Elixir
 - Day18: Elixir
 - Day19: Elixir (todo)
-- Day20: Elixir (todo)
+- Day20: Elixir (wip)
 - Day21: Elixir (todo)
 - Day22: Elixir (todo)
 - Day23: Elixir (todo)
 - Day24: Elixir
-- Day25: Elixir (todo)
+- Day25: Elixir
 
