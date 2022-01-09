@@ -5,10 +5,24 @@ defmodule Day20 do
 
   def part1 do
     {iea, src_img} = input()
+    solve(iea, src_img, 2)
+  end
 
-    src_img
-    |> transform(iea)
-    |> transform(iea)
+  def solve(iea, src_img, steps) do
+    1..steps
+    |> Enum.reduce(
+      {src_img, 0},
+      fn _, {image, default} ->
+        new_default =
+          case default do
+            0 -> iea[0]
+            1 -> iea[511]
+          end
+
+        {transform(image, iea, default), new_default}
+      end
+    )
+    |> elem(0)
     |> count_light()
   end
 
@@ -26,33 +40,32 @@ defmodule Day20 do
     )
   end
 
-  def transform(image, iea) do
-    rimage = rescale(image)
+  def transform(image, iea, default) do
+    rimage = rescale(image, default)
 
     rimage
     |> Enum.reduce(
       %{},
       fn {p, _}, new_image ->
-        idx = index(rimage, p)
+        idx = index(rimage, p, default)
         Map.put(new_image, p, iea[idx])
       end
     )
   end
 
-  def rescale(image) do
+  def rescale(image, default) do
+    {max_r, max_c} = image_size(image)
+
+    grid =
+      for r <- 0..(max_r + 2), c <- 0..(max_c + 2), into: %{} do
+        {{r, c}, default}
+      end
+
     image
     |> Enum.reduce(
-      %{},
-      fn {p, _}, acc ->
-        p
-        |> ns()
-        |> Enum.reduce(
-          acc,
-          fn {r, c}, acc ->
-            v = Map.get(image, {r, c}, 0)
-            Map.put(acc, {r, c}, v)
-          end
-        )
+      grid,
+      fn {{r, c}, v}, acc ->
+        Map.put(acc, {r + 1, c + 1}, v)
       end
     )
   end
@@ -77,7 +90,7 @@ defmodule Day20 do
     )
   end
 
-  def ns({r, c}) do
+  def index(image, {r, c}, default) do
     [
       {r - 1, c - 1},
       {r - 1, c},
@@ -89,11 +102,7 @@ defmodule Day20 do
       {r + 1, c},
       {r + 1, c + 1}
     ]
-  end
-
-  def index(image, {r, c}) do
-    ns({r, c})
-    |> Enum.map(&Map.get(image, &1, 0))
+    |> Enum.map(&Map.get(image, &1, default))
     |> Integer.undigits(2)
   end
 
