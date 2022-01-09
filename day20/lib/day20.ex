@@ -8,6 +8,12 @@ defmodule Day20 do
     solve(iea, src_img, 2)
   end
 
+  def part2 do
+    {iea, src_img} = input()
+    solve(iea, src_img, 50)
+  end
+
+
   def solve(iea, src_img, steps) do
     1..steps
     |> Enum.reduce(
