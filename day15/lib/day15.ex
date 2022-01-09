@@ -28,6 +28,7 @@ defmodule Day15 do
   end
 
   def dijkstra([], dist, _target, _graph), do: dist
+
   def dijkstra(q, dist, target, graph) do
     u = select_min_vertex(q, dist)
     new_q = MapSet.delete(q, u)
@@ -44,6 +45,7 @@ defmodule Day15 do
         fn v, dist ->
           distance = graph[v]
           alt = sum(dist[u], distance)
+
           if alt != nil && alt < dist[v] do
             Map.put(dist, v, alt)
           else
@@ -51,6 +53,7 @@ defmodule Day15 do
           end
         end
       )
+
     dijkstra(q, new_dist, target, graph)
   end
 
@@ -75,14 +78,17 @@ defmodule Day15 do
 
   def neighbors({r, c}, q) do
     [
-      {r, c + 1}, {r + 1, c},
-      {r - 1, c}, {r, c - 1}
+      {r, c + 1},
+      {r + 1, c},
+      {r - 1, c},
+      {r, c - 1}
     ]
-    |> Enum.filter(& MapSet.member?(q, &1))
+    |> Enum.filter(&MapSet.member?(q, &1))
   end
 
   def magnify(graph, real) do
     final = real * 5
+
     for r <- 0..(final - 1), c <- 0..(final - 1), into: %{} do
       {a, dr} = {rem(r, real), div(r, real)}
       {b, dc} = {rem(c, real), div(c, real)}

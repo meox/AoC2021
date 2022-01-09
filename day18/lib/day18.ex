@@ -12,6 +12,7 @@ defmodule Day18 do
   def part2() do
     data = input()
     cs = for x <- data, y <- data, do: {x, y}
+
     cs
     |> Enum.filter(fn {x, y} -> SnailG.to_list(x) != SnailG.to_list(y) end)
     |> Enum.reduce(
@@ -26,12 +27,10 @@ defmodule Day18 do
 
   def add(xs) do
     xs
-    |> Enum.reduce(
-      fn x, acc ->
-        SnailG.add(acc, x)
-        |> reduce()
-      end
-    )
+    |> Enum.reduce(fn x, acc ->
+      SnailG.add(acc, x)
+      |> reduce()
+    end)
   end
 
   def reduce(snail) do
@@ -48,6 +47,7 @@ defmodule Day18 do
   def explode_continue({:ok, snail}) do
     reduce(snail)
   end
+
   def explode_continue(r) do
     split_continue(r)
   end
@@ -61,6 +61,7 @@ defmodule Day18 do
     case split(snail) do
       {:ok, snail} ->
         reduce(snail)
+
       {:nop, snail} ->
         snail
     end
@@ -70,6 +71,7 @@ defmodule Day18 do
     case SnailG.left_most_explode(g) do
       nil ->
         {:nop, g}
+
       %SnailG{id: id, left: left_orig, right: right_orig} = node ->
         nl = SnailG.next_left(g, node)
         nr = SnailG.next_right(g, node)
@@ -82,6 +84,7 @@ defmodule Day18 do
           |> update_node(nr, new_val(nr, g[right_orig]))
           |> Map.delete(left_orig)
           |> Map.delete(right_orig)
+
         {:ok, new_g}
     end
   end
@@ -90,6 +93,7 @@ defmodule Day18 do
     case SnailG.left_most_split(g) do
       nil ->
         {:nop, g}
+
       %SnailG{id: id, val: v, level: level} = node ->
         l = :erlang.floor(v / 2)
         r = :erlang.ceil(v / 2)
@@ -105,6 +109,7 @@ defmodule Day18 do
           |> Map.put(id, %SnailG{node | left: left_id, right: right_id, val: nil})
           |> Map.put(left_id, left)
           |> Map.put(right_id, right)
+
         {:ok, new_g}
     end
   end
@@ -114,6 +119,7 @@ defmodule Day18 do
   def new_val(%SnailG{val: v1}, %SnailG{val: v2}), do: v1 + v2
 
   def update_node(g, nil, _), do: g
+
   def update_node(g, %SnailG{id: id} = node, v) do
     Map.put(g, id, %SnailG{node | val: v})
   end
@@ -132,6 +138,6 @@ defmodule Day18 do
 
     content
     |> String.split("\n", trim: true)
-    |> Enum.map(& SnailG.make(parse(&1)))
+    |> Enum.map(&SnailG.make(parse(&1)))
   end
 end

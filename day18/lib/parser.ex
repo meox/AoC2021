@@ -7,9 +7,10 @@ defmodule Snail.Parser do
 
   nat = integer(min: 1)
 
-  defcombinatorp :term, empty() |> choice([nat, parsec(:snail)])
+  defcombinatorp(:term, empty() |> choice([nat, parsec(:snail)]))
 
-  defcombinatorp :snail,
+  defcombinatorp(
+    :snail,
     empty()
     |> ignore(ascii_char([?[]))
     |> parsec(:term)
@@ -17,6 +18,7 @@ defmodule Snail.Parser do
     |> parsec(:term)
     |> ignore(ascii_char([?]]))
     |> wrap()
+  )
 
-  defparsec :parse, parsec(:snail)
+  defparsec(:parse, parsec(:snail))
 end
