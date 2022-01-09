@@ -6,7 +6,13 @@ defmodule Day21 do
   def part1(), do: solve(input())
 
   def part2() do
-    qplay(sample(), {0, 0})
+    case qplay(sample(), {0, 0}, 1) do
+      {a, b} when a > b ->
+        a
+
+      {_a, b} ->
+        b
+    end
   end
 
   def solve(state) do
@@ -15,21 +21,17 @@ defmodule Day21 do
     num_rolled * score
   end
 
-  def qstates() do
-    # uniq: for a <- [1, 2, 3], b <- [1, 2, 3], c <- [1, 2, 3], do: a + b + c
-    [3, 4, 5, 6, 7, 8, 9]
-  end
-
-  def qplay(state, wstate) do
+  def qplay(state, wstate, k) do
     {qs, wstate1} =
       state
       |> player_qstates(:player1)
       |> Enum.reduce(
         {[], wstate},
         fn state1, {qs_acc, wstate} ->
-          case update_winner(state1, wstate) do
+          case update_winner(state1, wstate, k) do
             {:win, :player1, ws} ->
               {qs_acc, ws}
+
             {:noop, ws} ->
               {[state1 | qs_acc], ws}
           end
@@ -45,11 +47,14 @@ defmodule Day21 do
         |> Enum.reduce(
           c_wstate,
           fn state2, wstate2 ->
-            case update_winner(state2, wstate2) do
+            %{player1: {_, _, k1}, player2: {_, _, k2}} = state2
+
+            case update_winner(state2, wstate2, k * mul_factor(k1)) do
               {:win, :player2, ws} ->
                 ws
+
               {:noop, ws} ->
-                qplay(state2, ws)
+                qplay(state2, ws, k * mul_factor(k1) * mul_factor(k2))
             end
           end
         )
@@ -57,45 +62,47 @@ defmodule Day21 do
     )
   end
 
-  def update_winner(state, {p1, p2} = wstate) do
+  def update_winner(state, {p1, p2} = wstate, k) do
     case state do
       %{player1: {_, score, nmove}} when score >= 21 ->
-        {:win, :player1, {p1 + mul_factor(nmove), p2}}
+        {:win, :player1, {p1 + k * mul_factor(nmove), p2}}
+
       %{player2: {_, score, nmove}} when score >= 21 ->
-        {:win, :player2, {p1, p2 + mul_factor(nmove)}}
+        {:win, :player2, {p1, p2 + k * mul_factor(nmove)}}
+
       _ ->
         {:noop, wstate}
-     end
+    end
   end
 
-  def mul_factor(nmove) do
-    ps = for a <- [1, 2, 3], b <- [1, 2, 3], c <- [1, 2, 3], do: a + b + c
-    ps |> Enum.frequencies() |> Map.get(nmove, 1)
-  end
+  @qfreq Enum.frequencies(for a <- [1, 2, 3], b <- [1, 2, 3], c <- [1, 2, 3], do: a + b + c)
+  def mul_factor(nmove), do: @qfreq[nmove]
 
   def player_qstates(state, player) do
     {pos, score, _} = state[player]
 
     [3, 4, 5, 6, 7, 8, 9]
-    |> Enum.map(
-      fn nmove ->
-        new_pos = board(pos, nmove)
-        new_score = score + new_pos
-        %{state | player => {new_pos, new_score, nmove}}
-      end
-    )
+    |> Enum.map(fn nmove ->
+      new_pos = board(pos, nmove)
+      new_score = score + new_pos
+      %{state | player => {new_pos, new_score, nmove}}
+    end)
   end
 
   def play(dice_last, num_rolled, state) do
     {d1, s1} = play_turn(:player1, dice_last, state)
+
     case s1[:player1] do
       {_, score, _} when score >= 1000 ->
         {num_rolled + 3, s1}
+
       _ ->
         {d2, s2} = play_turn(:player2, d1, s1)
+
         case s2[:player2] do
           {_, score, _} when score >= 1000 ->
             {num_rolled + 6, s2}
+
           _ ->
             play(d2, num_rolled + 6, s2)
         end
@@ -103,7 +110,7 @@ defmodule Day21 do
   end
 
   def play_turn(player, dice_last, state) do
-    {pos, score} = state[player]
+    {pos, score, _} = state[player]
     [_, _, dice_last] = moves = det_dice(dice_last)
     nmove = Enum.sum(moves)
 
@@ -118,6 +125,7 @@ defmodule Day21 do
   def looser_score(%{player1: {_, s1, _}}), do: s1
 
   def board(pos, 1), do: next_move(pos)
+
   def board(pos, nmove) do
     board(next_move(pos), nmove - 1)
   end
@@ -140,4 +148,3 @@ defmodule Day21 do
     %{player1: {4, 0, 0}, player2: {1, 0, 0}}
   end
 end
-

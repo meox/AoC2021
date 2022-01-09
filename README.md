@@ -21,7 +21,7 @@ https://adventofcode.com/2021
 - Day18: Elixir
 - Day19: Elixir (todo)
 - Day20: Elixir
-- Day21: Elixir (todo)
+- Day21: Elixir
 - Day22: Elixir (todo)
 - Day23: Elixir (todo)
 - Day24: Elixir

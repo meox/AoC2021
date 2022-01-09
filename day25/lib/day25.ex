@@ -11,22 +11,23 @@ defmodule Day25 do
   def steps(%Grid{} = grid) do
     steps(grid, 1)
   end
+
   def steps(grid, n) do
     case step(grid) do
       {:ok, grid} ->
         steps(grid, n + 1)
+
       {:nop, grid} ->
         {n, grid}
     end
   end
 
-  @spec step(%Grid{}) :: {:ok, %Grid{}} | {:nop, %Grid{}} 
+  @spec step(%Grid{}) :: {:ok, %Grid{}} | {:nop, %Grid{}}
   def step(%Grid{} = grid) do
     # move left cucumbers
     cleft = select(grid, :left)
 
     :a = :b
-
 
     tmp_grid = move_cucumbers(cleft, grid)
 
@@ -36,6 +37,7 @@ defmodule Day25 do
     case Enum.count(cleft) + Enum.count(csouth) do
       v when v > 0 ->
         {:ok, new_grid}
+
       _ ->
         {:nop, grid}
     end
@@ -64,6 +66,7 @@ defmodule Day25 do
               :left ->
                 acc
                 |> can_move?({r, c}, grid, mc, :left)
+
               _ ->
                 acc
             end
@@ -86,6 +89,7 @@ defmodule Day25 do
               :south ->
                 acc
                 |> can_move?({r, c}, grid, mr, :south)
+
               _ ->
                 acc
             end
@@ -97,9 +101,11 @@ defmodule Day25 do
 
   def can_move?(acc, {r, c}, grid, mc, :left) do
     next_p = {r, rem(c + 1, mc)}
+
     case Map.get(grid, next_p) do
       nil ->
         [{r, c} | acc]
+
       _ ->
         acc
     end
@@ -107,9 +113,11 @@ defmodule Day25 do
 
   def can_move?(acc, {r, c}, grid, mr, :south) do
     next_p = {rem(r + 1, mr), c}
+
     case Map.get(grid, next_p) do
       nil ->
         [{r, c} | acc]
+
       _ ->
         acc
     end
@@ -120,10 +128,12 @@ defmodule Day25 do
   end
 
   def move(nil, _, gr), do: gr
+
   def move(:left, {r, c}, %Grid{max_col: mc} = gr) do
     next_p = {r, rem(c + 1, mc)}
     check_move({r, c}, next_p, gr, :left)
   end
+
   def move(:south, {r, c}, %Grid{max_row: mr} = gr) do
     next_p = {rem(r + 1, mr), c}
     check_move({r, c}, next_p, gr, :south)
@@ -136,7 +146,9 @@ defmodule Day25 do
           grid
           |> Map.put(next_p, cucumber)
           |> Map.put(pos, nil)
+
         %Grid{gr | grid: new_grid}
+
       _ ->
         gr
     end
@@ -168,6 +180,7 @@ defmodule Day25 do
                 {c + 1, Map.put(acc, {r, c}, v)}
               end
             )
+
           {r + 1, max_col, new_acc}
         end
       )
@@ -175,4 +188,3 @@ defmodule Day25 do
     %Grid{grid: grid, max_row: max_row, max_col: max_col}
   end
 end
-
