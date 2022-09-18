@@ -122,7 +122,7 @@ func part1(scanners []scanner) {
 		}
 	}
 
-	points := make(map[])
+	points := make(map[beacon]bool)
 	for i := 1; i < len(scanners); i++ {
 		path, ok := findPath(i, trMap)
 		if !ok {
@@ -132,12 +132,17 @@ func part1(scanners []scanner) {
 		fmt.Printf("found: %v\n", path)
 
 		si := scanners[i]
-		for idx := 1; i < len(path); idx++ {
-			si = convert(scanners[idx], si)
+		for idx := 1; idx < len(path); idx++ {
+			to := path[idx]
+			si = convert(scanners[to], si)
 		}
 
-
+		for _, v := range si.beacons {
+			points[v] = true
+		}
 	}
+
+	fmt.Printf("#points: %d\n", len(points))
 }
 
 func addRel(i int, j int, trMap map[int][]int) {
@@ -228,6 +233,13 @@ func convert(s0 scanner, s1 scanner) scanner {
 					maybe[beaconPair{a: e1.b, b: e2.b}] += 1
 				}
 			}
+		}
+	}
+
+	// take the only > 1
+	for k, v := range maybe {
+		if v == 1 {
+			delete(maybe, k)
 		}
 	}
 
